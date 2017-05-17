@@ -6,6 +6,8 @@ using Microsoft.Xna.Framework.Input;
 using ShooterGame.Model;
 using ShooterGame.View;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Media;
 
 namespace ShooterGame.Controller
 {
@@ -60,13 +62,13 @@ namespace ShooterGame.Controller
 		private List<Animation> explosions;
 
 		// The sound that is played when a laser is fired
-		//SoundEffect laserSound;
+		SoundEffect laserSound;
 
 		// The sound used when the player or an enemy dies
-		//SoundEffect explosionSound;
+		SoundEffect explosionSound;
 
 		// The music played during gameplay
-		//Song gameplayMusic;
+		Song gameplayMusic;
 
 		public ShooterGame()
 		{
@@ -144,14 +146,14 @@ namespace ShooterGame.Controller
 			explosionTexture = Content.Load<Texture2D>("Animation/explosion");
 
 			// Load the music
-			//gameplayMusic = Content.Load<Song>("sound/gameMusic");
+			gameplayMusic = Content.Load<Song>("sound/gameMusic");
 
 			// Load the laser and explosion sound effect
-			//laserSound = Content.Load<SoundEffect>("sound/laserFire");
-			//explosionSound = Content.Load<SoundEffect>("sound/explosion");
+			laserSound = Content.Load<SoundEffect>("sound/laserFire");
+			explosionSound = Content.Load<SoundEffect>("sound/explosion");
 
 			// Start the music right away
-			//PlayMusic(gameplayMusic);
+			PlayMusic(gameplayMusic);
 
 			mainBackground = Content.Load<Texture2D>("Texture/mainbackground");
 
@@ -164,20 +166,20 @@ namespace ShooterGame.Controller
 			projectiles.Add(projectile);
 		}
 
-		//private void PlayMusic(Song song)
-		//{
-		//	// Due to the way the MediaPlayer plays music,
-		//	// we have to catch the exception. Music will play when the game is not tethered
-		//	try
-		//	{
-		//		// Play the music
-		//		MediaPlayer.Play(song);
+		private void PlayMusic(Song song)
+		{
+			// Due to the way the MediaPlayer plays music,
+			// we have to catch the exception. Music will play when the game is not tethered
+			try
+			{
+				// Play the music
+				MediaPlayer.Play(song);
 
-		//		// Loop the currently playing song
-		//		MediaPlayer.IsRepeating = true;
-		//	}
-		//	catch { }
-		//}
+				// Loop the currently playing song
+				MediaPlayer.IsRepeating = true;
+			}
+			catch { }
+		}
 
 
 		/// <summary>
@@ -268,8 +270,8 @@ namespace ShooterGame.Controller
 				// Add the projectile, but add it to the front and center of the player
 				AddProjectile(player.Position + new Vector2(player.Width / 2, 0));
 
-				// Play the laser sound
-				//laserSound.Play();
+				//Play the laser sound
+				laserSound.Play();
 			}
 		}
 
@@ -384,6 +386,9 @@ namespace ShooterGame.Controller
 					{
 						// Add an explosion
 						AddExplosion(enemies[i].Position);
+
+						// Play the explosion sound
+						explosionSound.Play();
 					}
 
 					enemies.RemoveAt(i);

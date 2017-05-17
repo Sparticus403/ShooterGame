@@ -1,0 +1,20 @@
+﻿<Properties StartupConfiguration="{4355A4CB-AA94-4007-899A-7C0652BCAA36}|Default">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Game/Controller/ShooterGame.cs">
+    <Files>
+      <File FileName="Game/Model/Player.cs" Line="33" Column="4" />
+      <File FileName="Game/Controller/ShooterGame.cs" Line="276" Column="35" />
+      <File FileName="Game/Controller/Program.cs" Line="16" Column="24" />
+      <File FileName="Game/View/Animation.cs" Line="41" Column="3" />
+      <File FileName="Game/View/ParallaxingBackground.cs" Line="39" Column="1" />
+      <File FileName="Game/Model/Enemy.cs" Line="85" Column="4" />
+      <File FileName="Game/Model/Projectile.cs" Line="67" Column="1" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.ItemProperties.ShooterGame PreferredExecutionTarget="MonoDevelop.Default" />
+  <MultiItemStartupConfigurations />
+</Properties>

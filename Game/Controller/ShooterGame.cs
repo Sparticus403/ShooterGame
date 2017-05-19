@@ -48,11 +48,20 @@ namespace ShooterGame.Controller
 		TimeSpan enemySpawnTime;
 		TimeSpan previousSpawnTime;
 
+		Texture2D tieTexture;
+		List<TieFighter> tieFighters;
+
+		TimeSpan tieSpawnTime;
+		TimeSpan previousTieSpawnTime;
+
 		// A random number generator
 		Random random;
 
 		Texture2D projectileTexture;
 		List<Projectile> projectiles;
+
+		Texture2D sineTexture;
+		List<SineBeam> sineBeams;
 
 		// The rate of fire of the player laser
 		TimeSpan fireTime;
@@ -69,6 +78,11 @@ namespace ShooterGame.Controller
 
 		// The music played during gameplay
 		Song gameplayMusic;
+
+		//Number that holds the player score
+		private int score;
+		// The font used to display UI elements
+		private SpriteFont font;
 
 		public ShooterGame()
 		{
@@ -96,6 +110,10 @@ namespace ShooterGame.Controller
 			// Initialize the enemies list
 			enemies = new List<Enemy> ();
 
+			tieFighters = new List<TieFighter>();
+			previousTieSpawnTime = TimeSpan.Zero;
+			tieSpawnTime = TimeSpan.FromSeconds(1.0f);
+
 			// Set the time keepers to zero
 			previousSpawnTime = TimeSpan.Zero;
 
@@ -107,10 +125,15 @@ namespace ShooterGame.Controller
 
 			projectiles = new List<Projectile>();
 
+			sineBeams = new List<SineBeam>();
+
 			// Set the laser to fire every quarter second
 			fireTime = TimeSpan.FromSeconds(.15f);
 
 			explosions = new List<Animation>();
+
+			//Set player's score to zero
+			score = 0;
 
 			base.Initialize();
 		}
@@ -140,8 +163,10 @@ namespace ShooterGame.Controller
 			bgLayer2.Initialize(Content, "Texture/bgLayer2", GraphicsDevice.Viewport.Width, -2);
 
 			enemyTexture = Content.Load<Texture2D>("Animation/mineAnimation");
+			tieTexture = Content.Load<Texture2D>("Animation/TieFighter");
 
 			projectileTexture = Content.Load<Texture2D>("Texture/laser");
+			sineTexture = Content.Load<Texture2D>("sineBeam");
 
 			explosionTexture = Content.Load<Texture2D>("Animation/explosion");
 
@@ -155,6 +180,10 @@ namespace ShooterGame.Controller
 			// Start the music right away
 			PlayMusic(gameplayMusic);
 
+			// Load the score font
+			//font = Content.Load("Font/gameFont");
+			font = Content.Load<SpriteFont>("Font/gameFont");
+
 			mainBackground = Content.Load<Texture2D>("Texture/mainbackground");
 
 		}
@@ -165,6 +194,21 @@ namespace ShooterGame.Controller
 			projectile.Initialize(GraphicsDevice.Viewport, projectileTexture, position);
 			projectiles.Add(projectile);
 		}
+
+		private void AddSineBeam(Vector2 position)
+		{
+			//SineBeam sineBeam = new SineBeam();
+			//sineBeam.Initialize(GraphicsDevice.Viewport, sineTexture, position);
+			//sineBeam.Add(sineBeam);		
+			Animation sineAnimation = new Animation();
+			sineAnimation.Initialize(sineTexture, Vector2.Zero, 56, 61, 8, 30, Color.White, 1f, false);
+
+			SineBeam sineBeam = new SineBeam();
+			sineBeam.Initialize(GraphicsDevice.Viewport, sineAnimation, position);
+
+			sineBeams.Add(sineBeam);	
+		}
+
 
 		private void PlayMusic(Song song)
 		{
@@ -214,12 +258,15 @@ namespace ShooterGame.Controller
 
 			// Update the enemies
 			UpdateEnemies(gameTime);
+			UpdateTieFighters(gameTime);
 
 			// Update the collision
 			UpdateCollision();
 
 			// Update the projectiles
 			UpdateProjectiles();
+
+			UpdateSineBeams();
 
 			// Update the explosions
 			UpdateExplosions(gameTime);
@@ -261,17 +308,38 @@ namespace ShooterGame.Controller
 			player.Position.X = MathHelper.Clamp(player.Position.X, 0, GraphicsDevice.Viewport.Width - player.Width);
 			player.Position.Y = MathHelper.Clamp(player.Position.Y, 0, GraphicsDevice.Viewport.Height - player.Height);
 
-			// Fire only every interval we set as the fireTime
-			if (gameTime.TotalGameTime - previousFireTime > fireTime)
+			if (currentKeyboardState.IsKeyDown(Keys.Space))
 			{
-				// Reset our current time
-				previousFireTime = gameTime.TotalGameTime;
+				// Fire only every interval we set as the fireTime
+				if (gameTime.TotalGameTime - previousFireTime > fireTime)
+				{
+					// Reset our current time
+					previousFireTime = gameTime.TotalGameTime;
 
-				// Add the projectile, but add it to the front and center of the player
-				AddProjectile(player.Position + new Vector2(player.Width / 2, 0));
+					// Add the projectile, but add it to the front and center of the player
+					AddProjectile(player.Position + new Vector2(player.Width / 2, 0));
 
-				//Play the laser sound
-				laserSound.Play();
+					//Play the laser sound
+					laserSound.Play();
+				}
+			}
+
+			//if(currentKeyboardState.IsKeyDown(Keys.LeftShift))
+			//{
+				if (gameTime.TotalGameTime - previousFireTime > fireTime)
+				{
+					previousFireTime = gameTime.TotalGameTime;
+
+					AddSineBeam(player.Position + new Vector2(player.Width / 2, 0));
+					laserSound.Play();
+				}
+			//}
+
+			// reset score if player health goes to zero
+			if (player.Health <= 0)
+			{
+			    player.Health = 100;
+			    score = 0;
 			}
 		}
 
@@ -285,6 +353,21 @@ namespace ShooterGame.Controller
 				if (projectiles[i].Active == false)
 				{
 					projectiles.RemoveAt(i);
+				}
+
+			}
+		}
+
+		private void UpdateSineBeams()
+		{
+			// Update the Projectiles
+			for (int i = sineBeams.Count - 1; i >= 0; i--)
+			{
+				sineBeams[i].Update();
+
+				if (sineBeams[i].Active == false)
+				{
+					sineBeams.RemoveAt(i);
 				}
 
 			}
@@ -335,6 +418,11 @@ namespace ShooterGame.Controller
 				explosions[i].Draw(spriteBatch);
 			}
 
+			// Draw the score
+			spriteBatch.DrawString(font, "score: " + score, new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X, GraphicsDevice.Viewport.TitleSafeArea.Y), Color.White);
+			// Draw the player health
+			spriteBatch.DrawString(font, "health: " + player.Health, new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X, GraphicsDevice.Viewport.TitleSafeArea.Y + 30), Color.White);
+
 			// Stop drawing
 			spriteBatch.End();
 
@@ -362,6 +450,26 @@ namespace ShooterGame.Controller
 			// Add the enemy to the active enemies list
 			enemies.Add(enemy);
 		}
+		private void AddTieFighter()
+		{
+			// Create the animation object
+			Animation tieAnimation = new Animation();
+
+			// Initialize the animation with the correct animation information
+			tieAnimation.Initialize(tieTexture, Vector2.Zero, 47, 61, 8, 30, Color.White, 1f, true);
+
+			// Randomly generate the position of the enemy
+			Vector2 position = new Vector2(GraphicsDevice.Viewport.Width + tieTexture.Width / 2, random.Next(100, GraphicsDevice.Viewport.Height - 100));
+
+			// Create an enemy
+			TieFighter tieFighter = new TieFighter();
+
+			// Initialize the enemy
+			tieFighter.Initialize(tieAnimation, position);
+
+			// Add the enemy to the active enemies list
+			tieFighters.Add(tieFighter);
+		}
 
 		private void UpdateEnemies(GameTime gameTime)
 		{
@@ -373,7 +481,6 @@ namespace ShooterGame.Controller
 				// Add an Enemy
 				AddEnemy();
 			}
-
 			// Update the Enemies
 			for (int i = enemies.Count - 1; i >= 0; i--)
 			{
@@ -389,9 +496,48 @@ namespace ShooterGame.Controller
 
 						// Play the explosion sound
 						explosionSound.Play();
+
+						//Add to the player's score
+						score += enemies[i].Value;
 					}
 
 					enemies.RemoveAt(i);
+				}
+
+			}
+		}
+
+		private void UpdateTieFighters(GameTime gameTime)
+		{
+			// Spawn a new enemy enemy every 1.5 seconds
+			if (gameTime.TotalGameTime - previousTieSpawnTime > tieSpawnTime)
+			{
+				previousTieSpawnTime = gameTime.TotalGameTime;
+
+				// Add an Enemy
+				AddTieFighter();
+			}
+			// Update the Enemies
+			for (int i = tieFighters.Count - 1; i >= 0; i--)
+			{
+				tieFighters[i].Update(gameTime);
+
+				if (tieFighters[i].Active == false)
+				{
+					// If not active and health <= 0
+					if (tieFighters[i].Health <= 0)
+					{
+						// Add an explosion
+						AddExplosion(tieFighters[i].Position);
+
+						// Play the explosion sound
+						explosionSound.Play();
+
+						//Add to the player's score
+						score += tieFighters[i].Value;
+					}
+
+					tieFighters.RemoveAt(i);
 				}
 
 			}
@@ -415,6 +561,7 @@ namespace ShooterGame.Controller
 			// determine if two objects are overlapping
 			Rectangle rectangle1;
 			Rectangle rectangle2;
+			Rectangle rectangle3;
 
 			// Only create the rectangle once for the player
 			rectangle1 = new Rectangle((int)player.Position.X,
@@ -447,6 +594,30 @@ namespace ShooterGame.Controller
 						player.Active = false;
 				}
 
+			}
+
+			for (int i = 0; i<tieFighters.Count; i++)
+			{
+				rectangle3 = new Rectangle((int)tieFighters[i].Position.X,
+				(int)tieFighters[i].Position.Y,
+				tieFighters[i].Width,
+				tieFighters[i].Height);
+
+				if (rectangle1.Intersects(rectangle3))
+				{
+					// Subtract the health from the player based on
+					// the enemy damage
+					player.Health -= tieFighters[i].Damage;
+
+					// Since the enemy collided with the player
+					// destroy it
+					tieFighters[i].Health = 0;
+
+					// If the player health is less than zero we died
+					if (player.Health <= 0)
+						player.Active = false;
+				}
+
 
 			}
 
@@ -468,6 +639,28 @@ namespace ShooterGame.Controller
 					if (rectangle1.Intersects(rectangle2))
 					{
 						enemies[j].Health -= projectiles[i].Damage;
+						projectiles[i].Active = false;
+					}
+				}
+			}
+
+			for (int i = 0; i<projectiles.Count; i++)
+			{
+				for (int j = 0; j<tieFighters.Count; j++)
+				{
+					// Create the rectangles we need to determine if we collided with each other
+					rectangle1 = new Rectangle((int)projectiles[i].Position.X - 
+					projectiles[i].Width / 2,(int)projectiles[i].Position.Y - 
+					projectiles[i].Height / 2,projectiles[i].Width, projectiles[i].Height);
+
+					rectangle3 = new Rectangle((int)tieFighters[j].Position.X - tieFighters[j].Width / 2,
+					(int)tieFighters[j].Position.Y - tieFighters[j].Height / 2,
+					tieFighters[j].Width, tieFighters[j].Height);
+
+					// Determine if the two objects collided with each other
+					if (rectangle1.Intersects(rectangle3))
+					{
+						tieFighters[j].Health -= projectiles[i].Damage;
 						projectiles[i].Active = false;
 					}
 				}

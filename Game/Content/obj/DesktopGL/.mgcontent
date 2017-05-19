@@ -19,5 +19,8 @@
     <File>/Users/twil8980/Projects/Game/Game/Content/Sound/gameMusic.mp3</File>
     <File>/Users/twil8980/Projects/Game/Game/Content/Sound/laserFire.wav</File>
     <File>/Users/twil8980/Projects/Game/Game/Content/Sound/menuMusic.mp3</File>
+    <File>/Users/twil8980/Projects/Game/Game/Content/Font/gameFont.spritefont</File>
+    <File>/Users/twil8980/Projects/Game/Game/Content/sineBeam.png</File>
+    <File>/Users/twil8980/Projects/Game/Game/Content/Animation/TieFighter.png</File>
   </SourceFiles>
 </SourceFileCollection>

@@ -35,3 +35,6 @@
 /Users/twil8980/Projects/Game/Game/bin/Debug/Content/Sound/laserFire.xnb
 /Users/twil8980/Projects/Game/Game/bin/Debug/Content/Sound/menuMusic.ogg
 /Users/twil8980/Projects/Game/Game/bin/Debug/Content/Sound/menuMusic.xnb
+/Users/twil8980/Projects/Game/Game/bin/Debug/Content/Font/gameFont.xnb
+/Users/twil8980/Projects/Game/Game/bin/Debug/Content/sineBeam.xnb
+/Users/twil8980/Projects/Game/Game/bin/Debug/Content/Animation/TieFighter.xnb
